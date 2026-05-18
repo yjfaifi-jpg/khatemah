@@ -1,11 +1,4 @@
-/**
- * lib/supabaseServer.ts
- * ─────────────────────
- * عميل Supabase للاستخدام في Server Components و Route Handlers.
- * يقرأ الـ cookies تلقائياً للمصادقة من جانب الخادم.
- */
-
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function createServerSupabase() {
@@ -19,33 +12,24 @@ export async function createServerSupabase() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // يُتجاهل في Server Components (القراءة فقط)
-          }
+          } catch {}
         },
       },
     }
   );
 }
 
-/**
- * يجلب المستخدم الحالي من الخادم.
- * يُستخدم في Server Components للتحقق من تسجيل الدخول.
- */
 export async function getUser() {
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
-/**
- * يجلب الملف الشخصي للمعلم من جدول profiles.
- */
 export async function getProfile(userId: string) {
   const supabase = await createServerSupabase();
   const { data } = await supabase
